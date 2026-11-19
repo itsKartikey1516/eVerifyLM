@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { supabase, api } from '../lib/supabase';
+import { api } from '../lib/supabase';
 import { Profile, UserRole } from '../types';
 
 interface AuthContextType {
@@ -45,25 +45,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
+    const saved = sessionStorage.getItem('everify_demo_role');
+    if (saved && ['citizen', 'lmo', 'gatc', 'admin'].includes(saved)) {
+      switchRole(saved as UserRole).finally(() => setLoading(false));
+    } else {
       setLoading(false);
-      fetchProfile(s?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setLoading(false);
-      fetchProfile(s?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+    }
+  }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    sessionStorage.removeItem('everify_demo_role');
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -73,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchProfile(user);
   }, [fetchProfile, user]);
 
-  const switchDemoRole = useCallback(async (role: UserRole) => {
+  const switchRole = useCallback(async (role: UserRole) => {
     const demoEmail = `${role}@demo.in`;
     const demoNames: Record<UserRole, string> = {
       citizen: 'Rajesh Kumar',
@@ -86,14 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: demoEmail,
       user_metadata: { full_name: demoNames[role] }
     };
-    setUser(mockUser);
     const prof = await api.post('/api/profiles', {
       email: demoEmail,
       full_name: demoNames[role],
       role
     });
+    sessionStorage.setItem('everify_demo_role', role);
     setProfile(prof);
+    setUser(mockUser);
   }, []);
+
+  const switchDemoRole = switchRole;
 
   return (
     <AuthContext.Provider value={{
