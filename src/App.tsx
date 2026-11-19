@@ -27,6 +27,7 @@ export function App() {
     <I18nProvider>
       <AuthProvider>
         <BrowserRouter>
+          <div role="status" style={{ background: "#fff4c2", color: "#4a3500", padding: "10px 16px", textAlign: "center", fontWeight: 600 }}>Demonstration only · Sample data stays in this browser · Not an official service</div>
           <Routes>
             {/* Public Pages */}
             <Route path="/" element={<Landing />} />
