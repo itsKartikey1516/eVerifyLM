@@ -1,32 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Scale,
   ShieldCheck,
   Check,
   UserRound,
   SearchCheck,
-  Building2,
-  LockKeyhole,
-  ArrowRight
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useI18n } from '../lib/i18n';
 import { GovernmentBar } from '../components/PublicChrome';
 import { UserRole } from '../types';
 
 export function Login() {
-  const [searchParams] = useSearchParams();
-  const [isSignUp, setIsSignUp] = useState(searchParams.get('mode') === 'signup');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [infoMsg, setInfoMsg] = useState('');
   const navigate = useNavigate();
   const { user, switchDemoRole } = useAuth();
-  const { t } = useI18n();
 
   useEffect(() => {
     if (user) {
@@ -69,44 +59,6 @@ export function Login() {
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setErrorMsg('Demo sign-in failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg('');
-    setInfoMsg('');
-
-    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      setErrorMsg('Please enter a valid email address.');
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters.');
-      return;
-    }
-    if (isSignUp && fullName.trim().length < 2) {
-      setErrorMsg('Please enter your full name.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // For standalone demo responsiveness: create mock session
-      const role: UserRole = email.includes('admin')
-        ? 'admin'
-        : email.includes('lmo')
-        ? 'lmo'
-        : email.includes('gatc')
-        ? 'gatc'
-        : 'citizen';
-
-      await switchDemoRole(role);
-      navigate('/dashboard', { replace: true });
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
@@ -157,12 +109,10 @@ export function Login() {
           <div className="w-full max-w-md space-y-8">
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-extrabold text-ink sm:text-3xl">
-                {isSignUp ? 'Create your account' : 'Sign in to eVerify LM'}
+                Explore the demo
               </h2>
               <p className="mt-1 text-sm text-ink-soft">
-                {isSignUp
-                  ? 'Register as an instrument owner, trader, or officer'
-                  : 'Access verification records, applications & certificates'}
+                Choose a demo role to explore sample records.
               </p>
             </div>
 
@@ -199,104 +149,8 @@ export function Login() {
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="relative text-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <span className="relative bg-surface px-3 text-xs font-bold uppercase text-ink-soft">
-                Or continue with email
-              </span>
-            </div>
-
-            {errorMsg && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {errorMsg}
-              </div>
-            )}
-            {infoMsg && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                {infoMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleEmailAuth} className="space-y-4">
-              {isSignUp && (
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-ink-soft">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Rajesh Kumar"
-                    className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-ink-soft">
-                  Work Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@business.in"
-                  className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-ink-soft">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="mt-1 h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white transition hover:bg-primary-dark disabled:opacity-50"
-              >
-                {loading ? 'Please wait…' : isSignUp ? 'Create Account' : 'Sign In'}
-                <ArrowRight size={16} />
-              </button>
-            </form>
-
-            <div className="text-center text-xs text-ink-soft">
-              {isSignUp ? (
-                <>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setIsSignUp(false)}
-                    className="font-bold text-primary hover:underline"
-                  >
-                    Sign In
-                  </button>
-                </>
-              ) : (
-                <>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setIsSignUp(true)}
-                    className="font-bold text-primary hover:underline"
-                  >
-                    Create Account
-                  </button>
-                </>
-              )}
-            </div>
+            {errorMsg && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMsg}</div>}
+            <p className="text-sm text-ink-soft">Demo only. No real account is created. Sample records are stored in this browser and are not shared or official.</p>
           </div>
         </div>
       </div>
